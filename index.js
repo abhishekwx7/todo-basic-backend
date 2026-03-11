@@ -104,6 +104,30 @@ app.post("/todo", auth, async function (req, res) {
   }
 });
 
+app.put("/todo/:id", auth, async function (req, res) {
+  try {
+    const todoId = req.params.id;
+
+    await TodoModel.updateOne(
+      {
+        _id: todoId,
+        userId: req.userId,
+      },
+      {
+        done: true,
+      },
+    );
+
+    res.json({
+      message: "Todo updated!",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Error updating todos",
+    });
+  }
+});
+
 app.get("/todos", auth, async function (req, res) {
   const userId = req.userId;
   const todos = await TodoModel.find({
