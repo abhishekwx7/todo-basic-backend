@@ -152,6 +152,19 @@ app.get("/todos", auth, async function (req, res) {
   });
 });
 
+app.delete("/todo/:id", auth, async function (req, res) {
+  const todoId = req.params.id;
+
+  await TodoModel.deleteOne({
+    _id: todoId,
+    userId: userId,
+  });
+
+  res.json({
+    message: "Todo deleted!",
+  });
+});
+
 function auth(req, res, next) {
   try {
     const token = req.headers.token;
