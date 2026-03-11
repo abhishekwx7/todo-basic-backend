@@ -15,45 +15,46 @@ app.use(express.json());
 
 app.post("/signup", async function (req, res) {
   const requiredBody = z.object({
-    email: z.email().min(3).max(100),
-    password: z.string(),
+    email: z.string().trim().email().max(100),
+    password: z.string().min(6),
     name: z.string().min(3).max(100),
   });
 
-  const parsedDataWithSuccess = requiredBody.safeParse(req.body);
+  const parsedData = requiredBody.safeParse(req.body);
 
-  if (!parsedDataWithSuccess.success) {
-    res.json({
+  if (!parsedData.success) {
+    return res.status(400).json({
       message: "Incorrect format",
-      error: parsedDataWithSuccess.error,
+      error: parsedData.error,
     });
   }
 
-  const email = req.body.email;
-  const password = req.body.password;
-  const name = req.body.name;
+  const { email, password, name } = parsedData.data;
 
-  let errorThrown = false;
+  //  Check if user already exists
+  const existingUser = await UserModel.findOne({ email });
+
+  if (existingUser) {
+    return res.status(400).json({
+      message: "User already exists",
+    });
+  }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 5);
-    console.log(hashedPassword);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await UserModel.create({
-      email: email,
+      email,
       password: hashedPassword,
-      name: name,
+      name,
     });
-  } catch (e) {
-    res.json({
-      message: "User already exists!",
-    });
-    errorThrown = true;
-  }
 
-  if (!errorThrown) {
     res.json({
       message: "You are signed up!",
+    });
+  } catch (e) {
+    res.status(500).json({
+      message: "Server error",
     });
   }
 });
