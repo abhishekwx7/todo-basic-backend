@@ -84,17 +84,24 @@ app.post("/signin", async function (req, res) {
 });
 
 app.post("/todo", auth, async function (req, res) {
-  const userId = req.userId;
-  const title = req.body.title;
+  try {
+    const { title } = req.body;
 
-  await TodoModel.create({
-    title,
-    userId,
-  });
+    const todo = await TodoModel.create({
+      title: title,
+      done: false,
+      userId: req.userId,
+    });
 
-  res.json({
-    message: "Todo created",
-  });
+    res.json({
+      message: "todo created",
+      todo: todo,
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Error creating todo",
+    });
+  }
 });
 
 app.get("/todos", auth, async function (req, res) {
