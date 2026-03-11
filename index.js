@@ -60,36 +60,27 @@ app.post("/signup", async function (req, res) {
 });
 
 app.post("/signin", async function (req, res) {
-  const email = req.body.email;
-  const password = req.body.password;
+  const { email, password } = req.body;
 
-  const user = await UserModel.findOne({
-    email: email,
-  });
+  const user = await UserModel.findOne({ email });
 
   if (!user) {
-    res.status(403).json({
-      message: "User doesn't exist in our database",
+    return res.status(403).json({
+      message: "User does not exist",
     });
   }
 
   const passwordMatch = await bcrypt.compare(password, user.password);
 
-  if (passwordMatch) {
-    const token = jwt.sign(
-      {
-        id: user._id.toString(),
-      },
-      JWT_SECRET,
-    );
-    res.json({
-      token: token,
-    });
-  } else {
-    res.json({
-      message: "Incorrect Credentials",
+  if (!passwordMatch) {
+    return res.status(403).json({
+      message: "Incorrect credentials",
     });
   }
+
+  const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET);
+
+  res.json({ token });
 });
 
 app.post("/todo", auth, async function (req, res) {
