@@ -1,10 +1,11 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const { UserModel, TodoModel } = require("./db");
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const { z } = require("zod");
-const JWT_SECRET = "yoihatemyself";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 mongoose.connect(
   "mongodb+srv://abhishekjack44_db_user:XleFqxQrMlHnUajD@cluster0.e2csgpk.mongodb.net/todos-week7-2",
@@ -140,16 +141,16 @@ app.get("/todos", auth, async function (req, res) {
 });
 
 function auth(req, res, next) {
-  const token = req.headers.token;
+  try {
+    const token = req.headers.token;
 
-  const decodedData = jwt.verify(token, JWT_SECRET);
+    const decodedData = jwt.verify(token, JWT_SECRET);
 
-  if (decodedData) {
     req.userId = decodedData.id;
     next();
-  } else {
+  } catch (err) {
     res.status(403).json({
-      message: "Incorrect Credentials",
+      message: "Invalid token",
     });
   }
 }
