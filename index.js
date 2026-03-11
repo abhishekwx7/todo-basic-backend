@@ -85,8 +85,20 @@ app.post("/signin", async function (req, res) {
 });
 
 app.post("/todo", auth, async function (req, res) {
+  const schema = z.object({
+    title: z.string().min(1),
+  });
+
+  const parsed = schema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: "Invalid input",
+    });
+  }
+
   try {
-    const { title } = req.body;
+    const { title } = parsed.body;
 
     const todo = await TodoModel.create({
       title: title,
@@ -94,8 +106,8 @@ app.post("/todo", auth, async function (req, res) {
       userId: req.userId,
     });
 
-    res.json({
-      message: "todo created",
+    res.status(201).json({
+      message: "Todo created",
       todo: todo,
     });
   } catch (err) {
